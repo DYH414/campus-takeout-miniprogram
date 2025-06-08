@@ -27,6 +27,7 @@
   padding: 20rpx;
   margin-bottom: 20rpx;
   border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
 }
 
 .category-list {
@@ -39,32 +40,39 @@
   flex-direction: column;
   align-items: center;
   margin-right: 40rpx;
-  padding: 10rpx;
-  border-radius: 10rpx;
+  padding: 12rpx;
+  border-radius: 16rpx;
   transition: all 0.3s;
   width: 120rpx;
 }
 
 .category-item.active {
   background: rgba(26, 173, 25, 0.1);
+  transform: scale(1.05);
 }
 
 .category-icon {
-  width: 60rpx;
-  height: 60rpx;
-  margin-bottom: 10rpx;
+  width: 70rpx;
+  height: 70rpx;
+  margin-bottom: 12rpx;
   display: block;
+  border-radius: 50%;
+  background-color: #f8f8f8;
+  padding: 10rpx;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.05);
 }
 
 .category-name {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #333;
   text-align: center;
   width: 100%;
+  font-weight: 500;
 }
 
 .category-item.active .category-name {
   color: #1aad19;
+  font-weight: bold;
 }
 
 /* 商家列表 */

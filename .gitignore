@@ -12,3 +12,15 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# 微信小程序
+project.private.config.json
+miniprogram_npm/
+.history/
+# 临时文件
+~$*
+*.tmp
+# 微信开发者工具本地配置
+.idea/
+# 敏感信息（如有需要请取消注释）
+# cloudfunctions/config/

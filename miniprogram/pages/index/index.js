@@ -20,24 +20,7 @@ Page({
     },
 
     onLoad: function () {
-        // 测试数据示例
-        const testShops = [
-            {
-                _id: '1',
-                name: '小阿哥煲仔饭',
-                description: '正宗煲仔饭，粤式快餐',
-                logoUrl: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png',
-                appId: 'wxdd01bfc7fb8cb134',  // 小阿哥煲仔饭小程序
-                category: '快餐',
-                deliveryStart: 20,
-                isOpen: true
-            }
-        ]
-
-        // 使用测试数据
-        this.setData({ shopList: testShops })
-
-        // this.loadShopList()  // 暂时注释掉从数据库加载的代码，使用测试数据
+        this.loadShopList()  // 从数据库加载数据
     },
 
     // 图片加载错误处理
@@ -163,5 +146,17 @@ Page({
                 })
             }
         })
+    },
+
+    // 商家图片加载错误处理
+    onShopImageError(e) {
+        const index = e.currentTarget.dataset.index
+        console.error('商家图片加载失败:', this.data.shopList[index].logoUrl)
+
+        // 创建新数组，避免直接修改状态
+        const shopList = [...this.data.shopList]
+        // 使用分类默认图标作为替代
+        shopList[index].logoUrl = 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png'
+        this.setData({ shopList })
     }
 }) 

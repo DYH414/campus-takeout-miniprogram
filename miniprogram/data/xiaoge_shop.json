@@ -1,0 +1,44 @@
+{
+    "name": "小阿哥煲仔饭",
+    "description": "正宗煲仔饭，粤式快餐，提供各类煲仔饭、炒粉面、例汤等美食",
+    "logoUrl": "cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png",
+    "appId": "wxdd01bfc7fb8cb134",
+    "category": "快餐",
+    "tags": [
+        "粤式",
+        "煲仔饭",
+        "炒粉面"
+    ],
+    "deliveryStart": 20,
+    "isOpen": true,
+    "businessHours": {
+        "start": "10:30",
+        "end": "21:00"
+    },
+    "address": {
+        "province": "广东省",
+        "city": "广州市",
+        "district": "天河区",
+        "detail": "天河路123号"
+    },
+    "contact": {
+        "phone": "020-12345678",
+        "weixin": "xiaogefan888"
+    },
+    "rating": {
+        "overall": 4.8,
+        "taste": 4.9,
+        "service": 4.7,
+        "delivery": 4.8
+    },
+    "monthSales": 2580,
+    "createTime": "2024-03-20T10:00:00.000Z",
+    "updateTime": "2024-03-20T10:00:00.000Z",
+    "businessStatus": 1,
+    "displayOrder": 100,
+    "features": {
+        "supportTakeout": true,
+        "supportDineIn": true,
+        "supportReservation": false
+    }
+}

@@ -26,7 +26,12 @@
   <!-- 商家列表 -->
   <scroll-view class="shop-list" scroll-y="true" bindscrolltolower="loadMore">
     <view class="shop-item" wx:for="{{shopList}}" wx:key="_id" bindtap="navigateToShop" data-shop="{{item}}">
-      <image class="shop-logo" src="{{item.logoUrl}}" mode="aspectFill"></image>
+      <image class="shop-logo" 
+             src="{{item.logoUrl}}" 
+             mode="aspectFill"
+             binderror="onShopImageError"
+             data-index="{{index}}"
+      ></image>
       <view class="shop-info">
         <view class="shop-name">{{item.name}}</view>
         <view class="shop-desc">{{item.description}}</view>
