@@ -130,21 +130,6 @@
   color: #666;
 }
 
-.shop-status {
-  padding: 4rpx 12rpx;
-  border-radius: 4rpx;
-}
-
-.shop-status.open {
-  color: #1aad19;
-  background: rgba(26, 173, 25, 0.1);
-}
-
-.shop-status.closed {
-  color: #999;
-  background: #f6f6f6;
-}
-
 /* 加载更多 */
 .loading, .no-more {
   text-align: center;

@@ -37,9 +37,6 @@
         <view class="shop-desc">{{item.description}}</view>
         <view class="shop-footer">
           <text class="delivery-fee">起送 ¥{{item.deliveryStart}}</text>
-          <text class="shop-status {{item.isOpen ? 'open' : 'closed'}}">
-            {{item.isOpen ? '营业中' : '休息中'}}
-          </text>
         </view>
       </view>
     </view>

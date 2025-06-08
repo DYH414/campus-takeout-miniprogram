@@ -113,13 +113,6 @@ Page({
     // 跳转到商家小程序
     navigateToShop(e) {
         const shop = e.currentTarget.dataset.shop
-        if (!shop.isOpen) {
-            wx.showToast({
-                title: '该商家休息中',
-                icon: 'none'
-            })
-            return
-        }
 
         if (!shop.appId) {
             wx.showToast({
