@@ -1,0 +1,46 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input type="text" placeholder="搜索商家" bindinput="onSearch" />
+  </view>
+
+  <!-- 分类标签 -->
+  <view class="category-section">
+    <scroll-view class="category-list" scroll-x="true" enhanced="true" show-scrollbar="false">
+      <view class="category-item {{currentCategory === item.name ? 'active' : ''}}" 
+            wx:for="{{categories}}" 
+            wx:key="id"
+            bindtap="switchCategory" 
+            data-category="{{item.name}}">
+        <image class="category-icon" 
+               src="{{item.icon}}" 
+               mode="aspectFit"
+               binderror="onImageError"
+               data-index="{{index}}"
+        ></image>
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 商家列表 -->
+  <scroll-view class="shop-list" scroll-y="true" bindscrolltolower="loadMore">
+    <view class="shop-item" wx:for="{{shopList}}" wx:key="_id" bindtap="navigateToShop" data-shop="{{item}}">
+      <image class="shop-logo" src="{{item.logoUrl}}" mode="aspectFill"></image>
+      <view class="shop-info">
+        <view class="shop-name">{{item.name}}</view>
+        <view class="shop-desc">{{item.description}}</view>
+        <view class="shop-footer">
+          <text class="delivery-fee">起送 ¥{{item.deliveryStart}}</text>
+          <text class="shop-status {{item.isOpen ? 'open' : 'closed'}}">
+            {{item.isOpen ? '营业中' : '休息中'}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="loading" wx:if="{{isLoading}}">加载中...</view>
+    <view class="no-more" wx:if="{{noMore}}">没有更多了</view>
+  </scroll-view>
+</view> 
