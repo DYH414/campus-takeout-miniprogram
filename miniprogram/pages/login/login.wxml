@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="header">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <view class="title">校园外卖聚合平台</view>
+    <view class="subtitle">登录后体验更多功能</view>
+  </view>
+  
+  <view class="login-section">
+    <button wx:if="{{canIUseGetUserProfile}}" 
+            class="login-btn" 
+            bindtap="getUserProfile">
+      微信一键登录
+    </button>
+    <button wx:else 
+            class="login-btn" 
+            open-type="getUserInfo" 
+            bindgetuserinfo="getUserInfo">
+      微信一键登录
+    </button>
+  </view>
+  
+  <view class="footer">
+    <text class="tips">登录即表示同意《用户协议》和《隐私政策》</text>
+  </view>
+</view> 

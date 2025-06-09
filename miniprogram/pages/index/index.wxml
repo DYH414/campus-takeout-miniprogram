@@ -25,19 +25,40 @@
 
   <!-- 商家列表 -->
   <scroll-view class="shop-list" scroll-y="true" bindscrolltolower="loadMore">
-    <view class="shop-item" wx:for="{{shopList}}" wx:key="_id" bindtap="navigateToShop" data-shop="{{item}}">
-      <image class="shop-logo" 
-             src="{{item.logoUrl}}" 
-             mode="aspectFill"
-             binderror="onShopImageError"
-             data-index="{{index}}"
-      ></image>
-      <view class="shop-info">
-        <view class="shop-name">{{item.name}}</view>
-        <view class="shop-desc">{{item.description}}</view>
-        <view class="shop-footer">
-          <text class="delivery-fee">起送 ¥{{item.deliveryStart}}</text>
+    <view class="shop-item" wx:for="{{shopList}}" wx:key="_id">
+      <view class="shop-header" bindtap="navigateToShop" data-shop="{{item}}">
+        <image class="shop-logo" 
+               src="{{item.logoUrl}}" 
+               mode="aspectFill"
+               binderror="onShopImageError"
+               data-index="{{index}}"
+        ></image>
+        <view class="shop-info">
+          <view class="shop-name">{{item.name}}</view>
+          <view class="shop-desc">{{item.description}}</view>
+          <view class="shop-footer">
+            <text class="delivery-fee">起送 ¥{{item.deliveryStart}}</text>
+          </view>
         </view>
+      </view>
+      
+      <!-- 热门评论 -->
+      <view class="hot-comment" wx:if="{{hotComments[item._id]}}" bindtap="goToShopDetail" data-id="{{item._id}}">
+        <view class="comment-user">
+          <image class="comment-avatar" src="{{hotComments[item._id].userInfo.avatarUrl}}" mode="aspectFill"></image>
+          <text class="comment-nickname">{{hotComments[item._id].userInfo.nickName}}</text>
+        </view>
+        <view class="comment-content">{{hotComments[item._id].content}}</view>
+        <view class="comment-likes">
+          <text class="like-icon">♥</text>
+          <text class="like-count">{{hotComments[item._id].likeCount || 0}}</text>
+        </view>
+      </view>
+      
+      <!-- 查看详情按钮 -->
+      <view class="detail-btn" bindtap="goToShopDetail" data-id="{{item._id}}">
+        <text>查看详情</text>
+        <text class="arrow">></text>
       </view>
     </view>
 

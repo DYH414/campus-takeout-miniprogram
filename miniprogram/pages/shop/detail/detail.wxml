@@ -1,0 +1,62 @@
+<view class="container">
+  <!-- 商家信息 -->
+  <view class="shop-header" wx:if="{{shop}}">
+    <image class="shop-banner" src="{{shop.logoUrl}}" mode="aspectFill"></image>
+    <view class="shop-info">
+      <view class="shop-name-row">
+        <view class="shop-name">{{shop.name}}</view>
+        <view class="favorite-btn {{isFavorite ? 'active' : ''}}" bindtap="toggleFavorite">
+          <text class="favorite-icon">{{isFavorite ? '★' : '☆'}}</text>
+          <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
+        </view>
+      </view>
+      <view class="shop-desc">{{shop.description}}</view>
+      <view class="shop-meta">
+        <text class="delivery-fee">起送 ¥{{shop.deliveryStart}}</text>
+      </view>
+      <button class="order-btn" bindtap="navigateToShop">去下单</button>
+    </view>
+  </view>
+  
+  <!-- 评论区域 -->
+  <view class="comment-section">
+    <view class="section-title">用户评论</view>
+    
+    <!-- 评论列表 -->
+    <view class="comment-list">
+      <block wx:if="{{comments.length > 0}}">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+          <image class="user-avatar" src="{{item.userInfo.avatarUrl}}" mode="aspectFill"></image>
+          <view class="comment-content">
+            <view class="comment-user">{{item.userInfo.nickName}}</view>
+            <view class="comment-text">{{item.content}}</view>
+            <view class="comment-footer">
+              <text class="comment-time">{{item.createTime ? item.createTime : '刚刚'}}</text>
+              <view class="like-btn {{item.likeUsers && item.likeUsers.includes(userInfo.openId) ? 'active' : ''}}" 
+                    bindtap="likeComment" 
+                    data-id="{{item._id}}" 
+                    data-index="{{index}}">
+                <text class="like-icon">{{item.likeUsers && item.likeUsers.includes(userInfo.openId) ? '♥' : '♡'}}</text>
+                <text class="like-count">{{item.likeCount || 0}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+      <view wx:else class="empty-comment">
+        <text>暂无评论，快来发表第一条评论吧</text>
+      </view>
+    </view>
+    
+    <!-- 发表评论 -->
+    <view class="comment-form">
+      <textarea class="comment-input" 
+                placeholder="写下你的评论..." 
+                bindinput="inputComment" 
+                value="{{newComment}}"
+                maxlength="200"
+                fixed="true"></textarea>
+      <button class="submit-btn" bindtap="submitComment" loading="{{isLoading}}">发表评论</button>
+    </view>
+  </view>
+</view> 

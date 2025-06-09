@@ -5,7 +5,7 @@ cloud.init({
     env: cloud.DYNAMIC_CURRENT_ENV
 })
 
-const db = cloud.database()
+const db = cloud.database()  
 const _ = db.command
 
 // 云函数入口函数

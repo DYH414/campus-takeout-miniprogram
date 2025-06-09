@@ -1,12 +1,34 @@
 {
     "pages": [
-        "pages/index/index"
+        "pages/index/index",
+        "pages/profile/profile",
+        "pages/login/login",
+        "pages/shop/detail/detail"
     ],
     "window": {
         "backgroundTextStyle": "light",
         "navigationBarBackgroundColor": "#fff",
         "navigationBarTitleText": "校园外卖聚合平台",
         "navigationBarTextStyle": "black"
+    },
+    "tabBar": {
+        "color": "#999",
+        "selectedColor": "#1aad19",
+        "backgroundColor": "#fff",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "首页",
+                "iconPath": "images/tabbar/home.png",
+                "selectedIconPath": "images/tabbar/home-active.png"
+            },
+            {
+                "pagePath": "pages/profile/profile",
+                "text": "我的",
+                "iconPath": "images/tabbar/profile.png",
+                "selectedIconPath": "images/tabbar/profile-active.png"
+            }
+        ]
     },
     "style": "v2",
     "sitemapLocation": "sitemap.json",

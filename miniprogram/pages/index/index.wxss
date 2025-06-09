@@ -81,11 +81,14 @@
 }
 
 .shop-item {
-  display: flex;
   padding: 20rpx;
   background: #fff;
   margin-bottom: 20rpx;
   border-radius: 10rpx;
+}
+
+.shop-header {
+  display: flex;
 }
 
 .shop-logo {
@@ -128,6 +131,72 @@
 
 .delivery-fee {
   color: #666;
+}
+
+/* 热门评论 */
+.hot-comment {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  position: relative;
+}
+
+.comment-user {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.comment-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+}
+
+.comment-nickname {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.comment-content {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.comment-likes {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #ff6b6b;
+}
+
+.like-icon {
+  margin-right: 6rpx;
+}
+
+/* 查看详情按钮 */
+.detail-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 15rpx 0;
+  border-top: 1rpx solid #f2f2f2;
+  color: #1aad19;
+  font-size: 28rpx;
+}
+
+.arrow {
+  margin-left: 6rpx;
 }
 
 /* 加载更多 */

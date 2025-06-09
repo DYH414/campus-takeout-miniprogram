@@ -16,11 +16,22 @@ Page({
         pageNum: 1,
         isLoading: false,
         noMore: false,
-        searchKeyword: ''
+        searchKeyword: '',
+        hotComments: {} // 存储每个商家的热门评论
     },
 
     onLoad: function () {
         this.loadShopList()  // 从数据库加载数据
+    },
+
+    onShow: function () {
+        // 检查登录状态变化
+        if (app.globalData.isLogin) {
+            this.setData({
+                isLogin: true,
+                userInfo: app.globalData.userInfo
+            })
+        }
     },
 
     // 图片加载错误处理
@@ -69,6 +80,9 @@ Page({
                 noMore: res.data.length < this.data.pageSize,
                 isLoading: false
             })
+
+            // 获取每个商家的热门评论
+            this.loadHotComments(newList.map(shop => shop._id))
         } catch (err) {
             console.error('加载商家列表失败：', err)
             wx.showToast({
@@ -77,6 +91,37 @@ Page({
             })
             this.setData({ isLoading: false })
         }
+    },
+
+    // 加载热门评论
+    loadHotComments: function (shopIds) {
+        if (!shopIds || shopIds.length === 0) return
+
+        const db = wx.cloud.database()
+        const _ = db.command
+        const $ = db.command.aggregate
+
+        // 为每个商家获取点赞数最高的评论
+        shopIds.forEach(shopId => {
+            db.collection('shop_comments')
+                .where({
+                    shopId: shopId
+                })
+                .orderBy('likeCount', 'desc')
+                .limit(1)
+                .get()
+                .then(res => {
+                    if (res.data && res.data.length > 0) {
+                        // 更新热门评论
+                        this.setData({
+                            [`hotComments.${shopId}`]: res.data[0]
+                        })
+                    }
+                })
+                .catch(err => {
+                    console.error('获取热门评论失败', err)
+                })
+        })
     },
 
     // 切换分类
@@ -138,6 +183,14 @@ Page({
                     icon: 'none'
                 })
             }
+        })
+    },
+
+    // 跳转到商家详情页
+    goToShopDetail(e) {
+        const shopId = e.currentTarget.dataset.id
+        wx.navigateTo({
+            url: `/pages/shop/detail/detail?id=${shopId}`
         })
     },
 

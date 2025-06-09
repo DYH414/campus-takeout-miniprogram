@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 用户信息区域 -->
+  <view class="user-section">
+    <block wx:if="{{isLogin}}">
+      <view class="user-info">
+        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="user-detail">
+          <text class="nickname">{{userInfo.nickName}}</text>
+        </view>
+      </view>
+      <button class="logout-btn" bindtap="logout">退出登录</button>
+    </block>
+    <block wx:else>
+      <view class="user-info not-login">
+        <image class="avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
+        <view class="user-detail">
+          <text class="login-tips">登录后体验更多功能</text>
+        </view>
+      </view>
+      <button class="login-btn" bindtap="goToLogin">立即登录</button>
+    </block>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="section-title">
+    <text>我的收藏</text>
+  </view>
+  
+  <view class="favorite-shops">
+    <block wx:if="{{isLogin}}">
+      <block wx:if="{{favoriteShops.length > 0}}">
+        <view class="shop-item" wx:for="{{favoriteShops}}" wx:key="_id">
+          <view class="shop-content" bindtap="navigateToShop" data-shop="{{item}}">
+            <image class="shop-logo" src="{{item.logoUrl}}" mode="aspectFill"></image>
+            <view class="shop-info">
+              <view class="shop-name">{{item.name}}</view>
+              <view class="shop-desc">{{item.description}}</view>
+            </view>
+          </view>
+          <view class="cancel-favorite" catchtap="cancelFavorite" data-id="{{item._id}}">
+            <text class="cancel-text">取消收藏</text>
+          </view>
+        </view>
+      </block>
+      <view wx:else class="empty-tips">
+        <text>暂无收藏商家</text>
+      </view>
+    </block>
+    <view wx:else class="login-tips-section">
+      <text>登录后查看收藏的商家</text>
+      <button class="mini-login-btn" bindtap="goToLogin">去登录</button>
+    </view>
+  </view>
+</view> 
