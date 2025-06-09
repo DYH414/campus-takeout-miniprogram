@@ -17,7 +17,8 @@ Page({
         isLoading: false,
         noMore: false,
         searchKeyword: '',
-        hotComments: {} // 存储每个商家的热门评论
+        hotComments: {}, // 存储每个商家的热门评论
+        userMap: {} // 存储用户信息的映射
     },
 
     onLoad: function () {
@@ -31,7 +32,122 @@ Page({
                 isLogin: true,
                 userInfo: app.globalData.userInfo
             })
+
+            // 如果已经加载了评论，重新获取用户信息
+            if (Object.keys(this.data.hotComments).length > 0) {
+                this.updateCommentsUserInfo()
+            }
         }
+    },
+
+    // 更新评论中的用户信息
+    updateCommentsUserInfo: function () {
+        const openids = []
+        const hotComments = this.data.hotComments
+
+        // 收集所有评论的用户openid
+        Object.values(hotComments).forEach(comment => {
+            if (comment && comment._openid) {
+                openids.push(comment._openid)
+            }
+        })
+
+        if (openids.length === 0) return
+
+        // 获取最新的用户信息
+        const db = wx.cloud.database()
+        const _ = db.command
+
+        db.collection('users')
+            .where({
+                _openid: _.in([...new Set(openids)])
+            })
+            .get()
+            .then(res => {
+                // 创建用户信息映射
+                const userMap = {}
+                res.data.forEach(user => {
+                    userMap[user._openid] = {
+                        nickName: user.nickName,
+                        avatarUrl: user.avatarUrl
+                    }
+                })
+
+                // 更新评论中的用户信息
+                const updatedHotComments = {}
+
+                Object.entries(hotComments).forEach(([shopId, comment]) => {
+                    if (comment && userMap[comment._openid]) {
+                        updatedHotComments[shopId] = {
+                            ...comment,
+                            userInfo: {
+                                nickName: userMap[comment._openid].nickName,
+                                avatarUrl: userMap[comment._openid].avatarUrl
+                            }
+                        }
+                    } else {
+                        updatedHotComments[shopId] = comment
+                    }
+                })
+
+                this.setData({
+                    hotComments: updatedHotComments,
+                    userMap: userMap
+                })
+            })
+            .catch(err => {
+                console.error('获取用户信息失败', err)
+            })
+    },
+
+    // 格式化评论时间
+    formatCommentTime: function (dateTime) {
+        if (!dateTime) return '刚刚';
+
+        const commentDate = new Date(dateTime);
+        const now = new Date();
+
+        // 计算时间差（毫秒）
+        const timeDiff = now - commentDate;
+
+        // 转换为秒
+        const seconds = Math.floor(timeDiff / 1000);
+
+        // 刚刚发布的评论
+        if (seconds < 60) {
+            return '刚刚';
+        }
+
+        // 分钟前
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+            return `${minutes}分钟前`;
+        }
+
+        // 小时前
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+            return `${hours}小时前`;
+        }
+
+        // 天前（7天内）
+        const days = Math.floor(hours / 24);
+        if (days < 7) {
+            return `${days}天前`;
+        }
+
+        // 超过7天显示具体日期
+        const year = commentDate.getFullYear();
+        const month = commentDate.getMonth() + 1;
+        const day = commentDate.getDate();
+
+        // 如果是今年，只显示月-日
+        if (year === now.getFullYear()) {
+            return `${month}月${day}日`;
+        }
+
+        // 不是今年，显示年-月-日
+        return `${year}年${month}月${day}日`;
     },
 
     // 图片加载错误处理
@@ -101,9 +217,12 @@ Page({
         const _ = db.command
         const $ = db.command.aggregate
 
+        // 收集所有评论的用户openid
+        const openids = []
+
         // 为每个商家获取点赞数最高的评论
-        shopIds.forEach(shopId => {
-            db.collection('shop_comments')
+        const promises = shopIds.map(shopId => {
+            return db.collection('shop_comments')
                 .where({
                     shopId: shopId
                 })
@@ -112,16 +231,78 @@ Page({
                 .get()
                 .then(res => {
                     if (res.data && res.data.length > 0) {
+                        const comment = res.data[0]
+
+                        // 格式化评论时间
+                        if (comment.createTime) {
+                            comment.formattedTime = this.formatCommentTime(comment.createTime)
+                        }
+
+                        // 收集评论用户的openid
+                        if (comment._openid) {
+                            openids.push(comment._openid)
+                        }
+
                         // 更新热门评论
                         this.setData({
-                            [`hotComments.${shopId}`]: res.data[0]
+                            [`hotComments.${shopId}`]: comment
                         })
+
+                        return {
+                            shopId,
+                            comment
+                        }
                     }
                 })
                 .catch(err => {
-                    console.error('获取热门评论失败', err)
+                    console.error(`获取商家 ${shopId} 的热门评论失败`, err)
                 })
         })
+
+        // 获取所有评论用户的信息
+        Promise.all(promises)
+            .then(() => {
+                if (openids.length > 0) {
+                    db.collection('users')
+                        .where({
+                            _openid: _.in([...new Set(openids)])
+                        })
+                        .get()
+                        .then(res => {
+                            // 创建用户信息映射
+                            const userMap = {}
+                            res.data.forEach(user => {
+                                userMap[user._openid] = {
+                                    nickName: user.nickName,
+                                    avatarUrl: user.avatarUrl
+                                }
+                            })
+
+                            // 更新评论中的用户信息
+                            const updatedHotComments = { ...this.data.hotComments }
+
+                            Object.entries(updatedHotComments).forEach(([shopId, comment]) => {
+                                if (comment && userMap[comment._openid]) {
+                                    updatedHotComments[shopId] = {
+                                        ...comment,
+                                        userInfo: {
+                                            nickName: userMap[comment._openid].nickName,
+                                            avatarUrl: userMap[comment._openid].avatarUrl
+                                        }
+                                    }
+                                }
+                            })
+
+                            this.setData({
+                                hotComments: updatedHotComments,
+                                userMap: userMap
+                            })
+                        })
+                        .catch(err => {
+                            console.error('获取用户信息失败', err)
+                        })
+                }
+            })
     },
 
     // 切换分类

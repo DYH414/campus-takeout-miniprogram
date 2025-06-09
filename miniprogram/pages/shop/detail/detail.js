@@ -9,7 +9,8 @@ Page({
         isFavorite: false,
         isLoading: false,
         isLogin: false,
-        userInfo: null
+        userInfo: null,
+        userMap: {} // 存储用户信息的映射
     },
 
     onLoad: function (options) {
@@ -82,10 +83,125 @@ Page({
             .get()
             .then(res => {
                 console.log('获取到评论数据:', res.data)
-                this.setData({ comments: res.data })
+
+                // 格式化评论时间
+                const formattedComments = res.data.map(comment => {
+                    if (comment.createTime) {
+                        comment.formattedTime = this.formatCommentTime(comment.createTime)
+                    }
+                    return comment
+                })
+
+                // 获取所有评论的用户openid
+                const openids = [...new Set(formattedComments.map(comment => comment._openid))]
+
+                if (openids.length > 0) {
+                    // 获取最新的用户信息
+                    this.loadLatestUserInfo(openids, formattedComments)
+                } else {
+                    this.setData({ comments: formattedComments })
+                }
             })
             .catch(err => {
                 console.error('获取评论失败', err)
+            })
+    },
+
+    // 格式化评论时间
+    formatCommentTime: function (dateTime) {
+        if (!dateTime) return '刚刚';
+
+        const commentDate = new Date(dateTime);
+        const now = new Date();
+
+        // 计算时间差（毫秒）
+        const timeDiff = now - commentDate;
+
+        // 转换为秒
+        const seconds = Math.floor(timeDiff / 1000);
+
+        // 刚刚发布的评论
+        if (seconds < 60) {
+            return '刚刚';
+        }
+
+        // 分钟前
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+            return `${minutes}分钟前`;
+        }
+
+        // 小时前
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+            return `${hours}小时前`;
+        }
+
+        // 天前（7天内）
+        const days = Math.floor(hours / 24);
+        if (days < 7) {
+            return `${days}天前`;
+        }
+
+        // 超过7天显示具体日期
+        const year = commentDate.getFullYear();
+        const month = commentDate.getMonth() + 1;
+        const day = commentDate.getDate();
+
+        // 如果是今年，只显示月-日
+        if (year === now.getFullYear()) {
+            return `${month}月${day}日`;
+        }
+
+        // 不是今年，显示年-月-日
+        return `${year}年${month}月${day}日`;
+    },
+
+    // 加载最新的用户信息
+    loadLatestUserInfo: function (openids, comments) {
+        const db = wx.cloud.database()
+        const _ = db.command
+
+        // 查询用户信息
+        db.collection('users')
+            .where({
+                _openid: _.in(openids)
+            })
+            .get()
+            .then(res => {
+                // 创建用户信息映射
+                const userMap = {}
+                res.data.forEach(user => {
+                    userMap[user._openid] = {
+                        nickName: user.nickName,
+                        avatarUrl: user.avatarUrl
+                    }
+                })
+
+                // 更新评论中的用户信息
+                const updatedComments = comments.map(comment => {
+                    // 如果有该用户的最新信息，则更新评论中的用户信息
+                    if (userMap[comment._openid]) {
+                        return {
+                            ...comment,
+                            userInfo: {
+                                nickName: userMap[comment._openid].nickName,
+                                avatarUrl: userMap[comment._openid].avatarUrl
+                            }
+                        }
+                    }
+                    return comment
+                })
+
+                this.setData({
+                    comments: updatedComments,
+                    userMap: userMap
+                })
+            })
+            .catch(err => {
+                console.error('获取用户信息失败', err)
+                // 如果获取用户信息失败，仍然显示原始评论
+                this.setData({ comments: comments })
             })
     },
 

@@ -43,23 +43,61 @@ Page({
                 // 获取openid
                 const openId = res.result.openid
 
-                // 合并用户信息
-                const user = {
-                    ...userInfo,
+                // 先检查数据库中是否已有该用户的信息
+                this.checkExistingUser(openId, userInfo)
+            },
+            fail: err => {
+                console.error('云函数调用失败', err)
+                wx.hideLoading()
+                wx.showToast({
+                    title: '登录失败，请重试',
+                    icon: 'none'
+                })
+            }
+        })
+    },
+
+    // 检查用户是否已存在
+    checkExistingUser: function (openId, wxUserInfo) {
+        const db = wx.cloud.database()
+
+        db.collection('users')
+            .where({
+                _openid: openId
+            })
+            .get()
+            .then(res => {
+                let userInfo = {
+                    ...wxUserInfo,
                     openId: openId,
                     loginTime: new Date().getTime()
                 }
 
+                if (res.data.length > 0) {
+                    // 用户已存在，使用数据库中的信息
+                    const dbUser = res.data[0]
+
+                    // 合并用户信息，优先使用数据库中的信息
+                    userInfo = {
+                        ...userInfo,
+                        nickName: dbUser.nickName || userInfo.nickName,
+                        avatarUrl: dbUser.avatarUrl || userInfo.avatarUrl
+                    }
+
+                    // 更新数据库中的登录时间
+                    this.updateUserLoginTime(dbUser._id)
+                } else {
+                    // 创建新用户
+                    this.createNewUser(userInfo)
+                }
+
                 // 保存到全局数据
-                app.globalData.userInfo = user
+                app.globalData.userInfo = userInfo
                 app.globalData.hasUserInfo = true
                 app.globalData.isLogin = true
 
                 // 保存到本地存储
-                wx.setStorageSync('userInfo', user)
-
-                // 更新或创建用户记录
-                this.updateUserInfo(user)
+                wx.setStorageSync('userInfo', userInfo)
 
                 wx.hideLoading()
 
@@ -75,56 +113,52 @@ Page({
                         url: '/pages/index/index'
                     })
                 }
-            },
-            fail: err => {
-                console.error('云函数调用失败', err)
+            })
+            .catch(err => {
+                console.error('检查用户信息失败', err)
                 wx.hideLoading()
                 wx.showToast({
                     title: '登录失败，请重试',
                     icon: 'none'
                 })
-            }
-        })
+            })
     },
 
-    // 更新用户信息到数据库
-    updateUserInfo: function (user) {
+    // 更新用户登录时间
+    updateUserLoginTime: function (userId) {
         const db = wx.cloud.database()
 
-        // 查询用户是否已存在
         db.collection('users')
-            .where({
-                _openid: user.openId
-            })
-            .get()
-            .then(res => {
-                if (res.data.length > 0) {
-                    // 更新用户信息
-                    return db.collection('users').doc(res.data[0]._id).update({
-                        data: {
-                            nickName: user.nickName,
-                            avatarUrl: user.avatarUrl,
-                            updateTime: db.serverDate()
-                        }
-                    })
-                } else {
-                    // 创建新用户
-                    return db.collection('users').add({
-                        data: {
-                            nickName: user.nickName,
-                            avatarUrl: user.avatarUrl,
-                            gender: user.gender,
-                            country: user.country,
-                            province: user.province,
-                            city: user.city,
-                            createTime: db.serverDate(),
-                            updateTime: db.serverDate()
-                        }
-                    })
+            .doc(userId)
+            .update({
+                data: {
+                    lastLoginTime: db.serverDate()
                 }
             })
             .catch(err => {
-                console.error('更新用户信息失败', err)
+                console.error('更新登录时间失败', err)
+            })
+    },
+
+    // 创建新用户
+    createNewUser: function (userInfo) {
+        const db = wx.cloud.database()
+
+        db.collection('users').add({
+            data: {
+                nickName: userInfo.nickName,
+                avatarUrl: userInfo.avatarUrl,
+                gender: userInfo.gender,
+                country: userInfo.country,
+                province: userInfo.province,
+                city: userInfo.city,
+                createTime: db.serverDate(),
+                updateTime: db.serverDate(),
+                lastLoginTime: db.serverDate()
+            }
+        })
+            .catch(err => {
+                console.error('创建用户失败', err)
             })
     }
 }) 

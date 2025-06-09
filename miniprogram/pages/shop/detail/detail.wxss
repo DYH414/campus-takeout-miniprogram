@@ -143,12 +143,17 @@
 }
 
 .like-btn.active {
-  color: #ff6b6b;
+  color: #ff4444;
 }
 
-.like-icon {
-  font-size: 28rpx;
+.like-btn .like-icon {
+  font-size: 36rpx;
   margin-right: 6rpx;
+}
+
+.like-btn.active .like-icon {
+  color: #ff4444;
+  font-weight: bold;
 }
 
 .empty-comment {

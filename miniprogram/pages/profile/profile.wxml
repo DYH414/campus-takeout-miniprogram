@@ -3,16 +3,35 @@
   <view class="user-section">
     <block wx:if="{{isLogin}}">
       <view class="user-info">
-        <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="avatar-container" bindtap="uploadAvatar">
+          <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+          <view class="avatar-edit-text">
+            <text>更换头像</text>
+          </view>
+        </view>
         <view class="user-detail">
-          <text class="nickname">{{userInfo.nickName}}</text>
+          <block wx:if="{{!isEditingName}}">
+            <view class="nickname-container" bindtap="showEditName">
+              <text class="nickname">{{userInfo.nickName}}</text>
+              <text class="edit-text">编辑</text>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="edit-name-container">
+              <input class="name-input" value="{{newNickname}}" bindinput="inputNewName" focus="{{true}}" maxlength="20" />
+              <view class="name-actions">
+                <text class="action-btn cancel" bindtap="cancelEditName">取消</text>
+                <text class="action-btn confirm" bindtap="saveNewName">保存</text>
+              </view>
+            </view>
+          </block>
         </view>
       </view>
       <button class="logout-btn" bindtap="logout">退出登录</button>
     </block>
     <block wx:else>
       <view class="user-info not-login">
-        <image class="avatar" src="/images/default-avatar.png" mode="aspectFill"></image>
+        <image class="avatar" src="/static/images/profile/default-avatar.svg" mode="aspectFill"></image>
         <view class="user-detail">
           <text class="login-tips">登录后体验更多功能</text>
         </view>

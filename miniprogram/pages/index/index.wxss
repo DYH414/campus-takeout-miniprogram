@@ -158,6 +158,14 @@
 .comment-nickname {
   font-size: 24rpx;
   color: #666;
+  margin-right: 10rpx;
+}
+
+.comment-time {
+  font-size: 22rpx;
+  color: #999;
+  flex: 1;
+  text-align: right;
 }
 
 .comment-content {

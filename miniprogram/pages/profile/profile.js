@@ -5,7 +5,9 @@ Page({
         userInfo: null,
         hasUserInfo: false,
         isLogin: false,
-        favoriteShops: []
+        favoriteShops: [],
+        isEditingName: false,
+        newNickname: ''
     },
 
     onLoad: function () {
@@ -27,7 +29,8 @@ Page({
         this.setData({
             userInfo: userInfo,
             hasUserInfo: app.globalData.hasUserInfo,
-            isLogin: isLogin
+            isLogin: isLogin,
+            newNickname: userInfo ? userInfo.nickName : ''
         })
     },
 
@@ -166,5 +169,169 @@ Page({
                 }
             }
         })
+    },
+
+    // 上传头像
+    uploadAvatar: function () {
+        if (!this.data.isLogin) {
+            wx.showToast({
+                title: '请先登录',
+                icon: 'none'
+            })
+            return
+        }
+
+        wx.chooseMedia({
+            count: 1,
+            mediaType: ['image'],
+            sourceType: ['album', 'camera'],
+            camera: 'back',
+            success: (res) => {
+                const tempFilePath = res.tempFiles[0].tempFilePath
+
+                wx.showLoading({
+                    title: '上传中...'
+                })
+
+                // 上传图片到云存储
+                const cloudPath = `avatars/${app.globalData.userInfo.openId}_${new Date().getTime()}.${tempFilePath.match(/\.(\w+)$/)[1]}`
+
+                wx.cloud.uploadFile({
+                    cloudPath: cloudPath,
+                    filePath: tempFilePath,
+                    success: (res) => {
+                        const fileID = res.fileID
+
+                        // 更新用户头像
+                        this.updateUserAvatar(fileID)
+                    },
+                    fail: (err) => {
+                        wx.hideLoading()
+                        console.error('上传头像失败', err)
+                        wx.showToast({
+                            title: '上传失败，请重试',
+                            icon: 'none'
+                        })
+                    }
+                })
+            }
+        })
+    },
+
+    // 更新用户头像
+    updateUserAvatar: function (fileID) {
+        const db = wx.cloud.database()
+
+        // 更新数据库中的用户头像
+        db.collection('users')
+            .where({
+                _openid: app.globalData.userInfo.openId
+            })
+            .update({
+                data: {
+                    avatarUrl: fileID,
+                    updateTime: db.serverDate()
+                }
+            })
+            .then(() => {
+                // 更新全局数据和本地存储
+                app.globalData.userInfo.avatarUrl = fileID
+                wx.setStorageSync('userInfo', app.globalData.userInfo)
+
+                this.setData({
+                    'userInfo.avatarUrl': fileID
+                })
+
+                wx.hideLoading()
+                wx.showToast({
+                    title: '头像更新成功',
+                    icon: 'success'
+                })
+            })
+            .catch(err => {
+                wx.hideLoading()
+                console.error('更新头像失败', err)
+                wx.showToast({
+                    title: '更新失败，请重试',
+                    icon: 'none'
+                })
+            })
+    },
+
+    // 显示昵称编辑框
+    showEditName: function () {
+        this.setData({
+            isEditingName: true
+        })
+    },
+
+    // 输入新昵称
+    inputNewName: function (e) {
+        this.setData({
+            newNickname: e.detail.value
+        })
+    },
+
+    // 取消编辑昵称
+    cancelEditName: function () {
+        this.setData({
+            isEditingName: false,
+            newNickname: this.data.userInfo.nickName
+        })
+    },
+
+    // 保存新昵称
+    saveNewName: function () {
+        const newNickname = this.data.newNickname.trim()
+
+        if (!newNickname) {
+            wx.showToast({
+                title: '昵称不能为空',
+                icon: 'none'
+            })
+            return
+        }
+
+        wx.showLoading({
+            title: '保存中...'
+        })
+
+        const db = wx.cloud.database()
+
+        // 更新数据库中的用户昵称
+        db.collection('users')
+            .where({
+                _openid: app.globalData.userInfo.openId
+            })
+            .update({
+                data: {
+                    nickName: newNickname,
+                    updateTime: db.serverDate()
+                }
+            })
+            .then(() => {
+                // 更新全局数据和本地存储
+                app.globalData.userInfo.nickName = newNickname
+                wx.setStorageSync('userInfo', app.globalData.userInfo)
+
+                this.setData({
+                    'userInfo.nickName': newNickname,
+                    isEditingName: false
+                })
+
+                wx.hideLoading()
+                wx.showToast({
+                    title: '昵称更新成功',
+                    icon: 'success'
+                })
+            })
+            .catch(err => {
+                wx.hideLoading()
+                console.error('更新昵称失败', err)
+                wx.showToast({
+                    title: '更新失败，请重试',
+                    icon: 'none'
+                })
+            })
     }
 }) 

@@ -31,12 +31,12 @@
             <view class="comment-user">{{item.userInfo.nickName}}</view>
             <view class="comment-text">{{item.content}}</view>
             <view class="comment-footer">
-              <text class="comment-time">{{item.createTime ? item.createTime : '刚刚'}}</text>
-              <view class="like-btn {{item.likeUsers && item.likeUsers.includes(userInfo.openId) ? 'active' : ''}}" 
+              <text class="comment-time">{{item.formattedTime || '刚刚'}}</text>
+              <view class="like-btn {{item.likeUsers && userInfo && item.likeUsers.indexOf(userInfo.openId) >= 0 ? 'active' : ''}}" 
                     bindtap="likeComment" 
                     data-id="{{item._id}}" 
                     data-index="{{index}}">
-                <text class="like-icon">{{item.likeUsers && item.likeUsers.includes(userInfo.openId) ? '♥' : '♡'}}</text>
+                <text class="like-icon">{{item.likeUsers && userInfo && item.likeUsers.indexOf(userInfo.openId) >= 0 ? '♥' : '♡'}}</text>
                 <text class="like-count">{{item.likeCount || 0}}</text>
               </view>
             </view>

@@ -47,6 +47,7 @@
         <view class="comment-user">
           <image class="comment-avatar" src="{{hotComments[item._id].userInfo.avatarUrl}}" mode="aspectFill"></image>
           <text class="comment-nickname">{{hotComments[item._id].userInfo.nickName}}</text>
+          <text class="comment-time">{{hotComments[item._id].formattedTime || '刚刚'}}</text>
         </view>
         <view class="comment-content">{{hotComments[item._id].content}}</view>
         <view class="comment-likes">
