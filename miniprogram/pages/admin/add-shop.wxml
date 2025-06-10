@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="header">
+    <text class="title">添加商家</text>
+  </view>
+  
+  <view class="form">
+    <view class="form-item">
+      <text class="label">商家名称</text>
+      <text class="value">{{shop.name}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">商家描述</text>
+      <text class="value">{{shop.description}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">小程序AppID</text>
+      <text class="value">{{shop.appId}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">分类</text>
+      <text class="value">{{shop.category}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">起送价格</text>
+      <text class="value">¥{{shop.deliveryStart}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">评分</text>
+      <text class="value">{{shop.rating}}</text>
+    </view>
+    
+    <view class="form-item">
+      <text class="label">月销量</text>
+      <text class="value">{{shop.monthlySales}}</text>
+    </view>
+  </view>
+  
+  <button class="submit-btn" bindtap="addShop" loading="{{isAdding}}">添加商家</button>
+  
+  <view class="result" wx:if="{{shop._id}}">
+    <text class="success-text">添加成功！商家ID: {{shop._id}}</text>
+  </view>
+</view> 

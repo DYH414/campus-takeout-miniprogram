@@ -7,8 +7,9 @@ Page({
         categories: [
             { id: 'all', name: '全部', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png' },
             { id: 'milk-tea', name: '奶茶', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/milk-tea.png' },
-            { id: 'fast-food', name: '快餐', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png' },
-            { id: 'snack', name: '小吃', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png' },
+            { id: 'fast-food', name: '快餐', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/Kuaican.png' },
+            { id: 'takeaway-platform', name: '外卖平台', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/Waimai.png' },
+            { id: 'hamburger', name: '汉堡', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/Hanbao.png' },
             { id: 'dessert', name: '甜点', icon: 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png' }
         ],
         shopList: [],
@@ -154,9 +155,9 @@ Page({
     onImageError: function (e) {
         const index = e.currentTarget.dataset.index
         console.error('图片加载失败:', this.data.categories[index].icon)
-        // 可以设置一个默认图片
+        // 使用默认图片
         const categories = this.data.categories
-        categories[index].icon = 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png'
+        categories[index].icon = '/static/images/category/default.png'
         this.setData({ categories })
     },
 
@@ -336,35 +337,50 @@ Page({
         }
     },
 
-    // 跳转到商家小程序
-    navigateToShop(e) {
+    // 跳转到商家
+    navigateToShop: function (e) {
         const shop = e.currentTarget.dataset.shop
 
-        if (!shop.appId) {
-            wx.showToast({
-                title: '商家appId未配置',
-                icon: 'none'
-            })
-            return
-        }
-
-        wx.navigateToMiniProgram({
-            appId: shop.appId,
-            success(res) {
-                console.log('跳转成功')
-            },
-            fail(err) {
-                console.error('跳转失败：', err)
-                let errMsg = '跳转失败'
-                if (err.errMsg.includes('invalid appid')) {
-                    errMsg = '商家小程序ID无效'
+        // 根据平台类型跳转
+        if (shop.platform === 'meituan') {
+            // 美团外卖
+            wx.navigateToMiniProgram({
+                appId: 'wxde8ac0a21135c07d', // 美团外卖小程序的AppID
+                path: `pages/shop/shop?id=${shop.platformShopId}`,
+                fail: function (err) {
+                    console.error('跳转美团失败:', err)
+                    wx.showToast({
+                        title: '跳转失败，请稍后重试',
+                        icon: 'none'
+                    })
                 }
-                wx.showToast({
-                    title: errMsg,
-                    icon: 'none'
-                })
-            }
-        })
+            })
+        } else if (shop.platform === 'ele') {
+            // 饿了么
+            wx.navigateToMiniProgram({
+                appId: 'wxece3a9a4c82f58c9', // 饿了么小程序的AppID
+                path: `pages/shop/shop?id=${shop.platformShopId}`,
+                fail: function (err) {
+                    console.error('跳转饿了么失败:', err)
+                    wx.showToast({
+                        title: '跳转失败，请稍后重试',
+                        icon: 'none'
+                    })
+                }
+            })
+        } else {
+            // 其他小程序
+            wx.navigateToMiniProgram({
+                appId: shop.appId,
+                fail: function (err) {
+                    console.error('跳转失败:', err)
+                    wx.showToast({
+                        title: '跳转失败，请稍后重试',
+                        icon: 'none'
+                    })
+                }
+            })
+        }
     },
 
     // 跳转到商家详情页
@@ -382,8 +398,8 @@ Page({
 
         // 创建新数组，避免直接修改状态
         const shopList = [...this.data.shopList]
-        // 使用分类默认图标作为替代
-        shopList[index].logoUrl = 'cloud://cloudbase-0gdnnqax782f54fa.636c-cloudbase-0gdnnqax782f54fa-1363163853/static/images/category/all.png'
+        // 使用默认图片
+        shopList[index].logoUrl = '/static/images/shops/default.png'
         this.setData({ shopList })
     }
 }) 

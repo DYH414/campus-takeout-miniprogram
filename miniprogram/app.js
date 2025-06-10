@@ -13,9 +13,7 @@ App({
         // 获取系统信息
         const systemInfo = wx.getWindowInfo()
 
-        // 检查用户登录状态
-        this.checkLoginStatus()
-
+        // 初始化全局数据
         this.globalData = {
             userInfo: null,
             hasUserInfo: false,
@@ -24,6 +22,9 @@ App({
             windowHeight: systemInfo.windowHeight,
             favoriteShops: []
         }
+
+        // 检查用户登录状态
+        this.checkLoginStatus()
     },
 
     // 检查登录状态

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#ff7043" rx="20" ry="20"/>
+  <text x="100" y="90" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#fff">百媚鸡</text>
+  <text x="100" y="120" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#fff">猪肘饭</text>
+  <path d="M50,140 C60,130 80,150 100,140 C120,150 140,130 150,140 C150,160 120,170 100,160 C80,170 50,160 50,140 Z" fill="#fff"/>
+</svg> 
