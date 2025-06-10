@@ -342,39 +342,30 @@ Page({
     // 跳转到商家
     navigateToShop(e) {
         const shop = e.currentTarget.dataset.shop;
+        // 新数据结构：有多个平台
         if (shop.platforms && shop.platforms.length > 1) {
             this.setData({
                 showPlatformSelector: true,
                 currentShop: shop
             });
         } else if (shop.platforms && shop.platforms.length === 1) {
+            // 新数据结构：只有一个平台
             const platform = shop.platforms[0];
             if (platform.type === 'miniprogram') {
                 wx.navigateToMiniProgram({
                     appId: platform.appId,
-                    path: platform.path,
-                    fail: (err) => {
-                        if (err.errMsg !== 'navigateToMiniProgram:fail cancel') {
-                            wx.showToast({
-                                title: '跳转失败',
-                                icon: 'none'
-                            });
-                        }
-                    }
+                    path: platform.path || ''
                 });
             } else if (platform.type === 'web') {
                 wx.navigateTo({
-                    url: `/pages/webview/webview?url=${encodeURIComponent(platform.url)}`,
-                    fail: (err) => {
-                        if (err.errMsg !== 'navigateTo:fail cancel') {
-                            wx.showToast({
-                                title: '跳转失败',
-                                icon: 'none'
-                            });
-                        }
-                    }
+                    url: `/pages/webview/webview?url=${encodeURIComponent(platform.url)}`
                 });
             }
+        } else if (shop.appId) {
+            // 兼容老数据结构：直接跳转到小程序
+            wx.navigateToMiniProgram({
+                appId: shop.appId
+            });
         }
     },
 
