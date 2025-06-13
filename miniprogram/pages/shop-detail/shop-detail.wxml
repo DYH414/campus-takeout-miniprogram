@@ -1,0 +1,40 @@
+<!-- 商家信息 -->
+<view class="shop-info">
+  <view class="shop-header">
+    <image class="shop-avatar" src="{{shopInfo.avatarUrl}}" mode="aspectFill"></image>
+    <view class="shop-info-right">
+      <view class="shop-name">{{shopInfo.name}}</view>
+      <view class="shop-rating">
+        <text class="rating-text">评分：{{shopInfo.rating || '暂无'}}</text>
+        <view class="like-icon" bindtap="toggleLike">
+          <image src="{{isLiked ? '/static/images/liked.png' : '/static/images/unliked.png'}}" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="shop-desc">{{shopInfo.description || '暂无描述'}}</view>
+</view>
+
+<!-- 添加样式 -->
+<style>
+.shop-rating {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 10rpx;
+}
+
+.like-icon {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx;
+}
+
+.like-icon image {
+  width: 100%;
+  height: 100%;
+}
+</style> 

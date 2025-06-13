@@ -1,6 +1,29 @@
 // 获取应用实例
 const app = getApp()
 
+// 添加获取热门评论的函数，放在Page外面
+const getHotComments = function (db, shopList) {
+    const promises = shopList.map(shop => {
+        return db.collection('shop_comments')
+            .where({ shopId: shop._id })
+            .orderBy('likeCount', 'desc')
+            .limit(1)
+            .get()
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    shop.hotComment = res.data[0];
+                }
+                return shop;
+            })
+            .catch(err => {
+                console.error('获取热门评论失败', err);
+                return shop;
+            });
+    });
+
+    return Promise.all(promises);
+}
+
 Page({
     data: {
         currentCategory: '全部',
@@ -29,18 +52,66 @@ Page({
     },
 
     onShow: function () {
-        // 检查登录状态变化
-        if (app.globalData.isLogin) {
-            this.setData({
-                isLogin: true,
-                userInfo: app.globalData.userInfo
+        // 检查登录状态
+        if (!app.globalData.userInfo) {
+            wx.showLoading({
+                title: '加载中...',
+                mask: true
             })
-
-            // 如果已经加载了评论，重新获取用户信息
-            if (Object.keys(this.data.hotComments).length > 0) {
-                this.updateCommentsUserInfo()
-            }
+            app.checkLoginStatus().then(() => {
+                wx.hideLoading()
+                // 登录成功后重新加载数据
+                this.loadShopList()
+                this.loadHotComments()
+            }).catch(err => {
+                wx.hideLoading()
+                console.error('登录失败', err)
+                wx.showToast({
+                    title: '登录失败，请重试',
+                    icon: 'none'
+                })
+            })
+        } else {
+            // 已登录，直接加载数据
+            this.loadShopList()
+            this.loadHotComments()
         }
+    },
+
+    // 加载热门评论
+    loadHotComments: function () {
+        const db = wx.cloud.database()
+        const _ = db.command
+        const $ = db.command.aggregate
+
+        // 使用聚合操作获取每个店铺的最新评论
+        db.collection('shop_comments')
+            .aggregate()
+            .group({
+                _id: '$shopId',
+                comment: $.first('$$ROOT')
+            })
+            .end()
+            .then(res => {
+                if (res.list && res.list.length > 0) {
+                    const hotComments = {}
+                    const openids = []
+
+                    // 收集所有评论的用户openid
+                    res.list.forEach(item => {
+                        if (item.comment && item.comment._openid) {
+                            hotComments[item._id] = item.comment
+                            openids.push(item.comment._openid)
+                        }
+                    })
+
+                    // 获取最新的用户信息
+                    this.updateCommentsUserInfo()
+                }
+            })
+            .catch(err => {
+                console.error('获取热门评论失败', err)
+            })
     },
 
     // 更新评论中的用户信息
@@ -200,8 +271,14 @@ Page({
                 isLoading: false
             })
 
-            // 获取每个商家的热门评论
-            this.loadHotComments(newList.map(shop => shop._id))
+            // 获取每个商家点赞最多的评论
+            getHotComments(db, this.data.shopList).then(updatedList => {
+                this.setData({
+                    shopList: updatedList
+                });
+            }).catch(err => {
+                console.error('处理热门评论失败', err);
+            });
         } catch (err) {
             console.error('加载商家列表失败：', err)
             wx.showToast({
@@ -210,102 +287,6 @@ Page({
             })
             this.setData({ isLoading: false })
         }
-    },
-
-    // 加载热门评论
-    loadHotComments: function (shopIds) {
-        if (!shopIds || shopIds.length === 0) return
-
-        const db = wx.cloud.database()
-        const _ = db.command
-        const $ = db.command.aggregate
-
-        // 收集所有评论的用户openid
-        const openids = []
-
-        // 为每个商家获取点赞数最高的评论
-        const promises = shopIds.map(shopId => {
-            return db.collection('shop_comments')
-                .where({
-                    shopId: shopId
-                })
-                .orderBy('likeCount', 'desc')
-                .limit(1)
-                .get()
-                .then(res => {
-                    if (res.data && res.data.length > 0) {
-                        const comment = res.data[0]
-
-                        // 格式化评论时间
-                        if (comment.createTime) {
-                            comment.formattedTime = this.formatCommentTime(comment.createTime)
-                        }
-
-                        // 收集评论用户的openid
-                        if (comment._openid) {
-                            openids.push(comment._openid)
-                        }
-
-                        // 更新热门评论
-                        this.setData({
-                            [`hotComments.${shopId}`]: comment
-                        })
-
-                        return {
-                            shopId,
-                            comment
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.error(`获取商家 ${shopId} 的热门评论失败`, err)
-                })
-        })
-
-        // 获取所有评论用户的信息
-        Promise.all(promises)
-            .then(() => {
-                if (openids.length > 0) {
-                    db.collection('users')
-                        .where({
-                            _openid: _.in([...new Set(openids)])
-                        })
-                        .get()
-                        .then(res => {
-                            // 创建用户信息映射
-                            const userMap = {}
-                            res.data.forEach(user => {
-                                userMap[user._openid] = {
-                                    nickName: user.nickName,
-                                    avatarUrl: user.avatarUrl
-                                }
-                            })
-
-                            // 更新评论中的用户信息
-                            const updatedHotComments = { ...this.data.hotComments }
-
-                            Object.entries(updatedHotComments).forEach(([shopId, comment]) => {
-                                if (comment && userMap[comment._openid]) {
-                                    updatedHotComments[shopId] = {
-                                        ...comment,
-                                        userInfo: {
-                                            nickName: userMap[comment._openid].nickName,
-                                            avatarUrl: userMap[comment._openid].avatarUrl
-                                        }
-                                    }
-                                }
-                            })
-
-                            this.setData({
-                                hotComments: updatedHotComments,
-                                userMap: userMap
-                            })
-                        })
-                        .catch(err => {
-                            console.error('获取用户信息失败', err)
-                        })
-                }
-            })
     },
 
     // 切换分类
@@ -436,5 +417,111 @@ Page({
         // 使用默认图片
         shopList[index].logoUrl = '/static/images/shops/default.png'
         this.setData({ shopList })
-    }
+    },
+
+    // 用户点击星星进行评分
+    rateShop: function (e) {
+        // 阻止事件冒泡，避免触发商家卡片的点击事件
+        if (e && e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        // 获取商家ID和用户点击的星级
+        const shopId = e.currentTarget.dataset.shopId;
+        const rating = parseInt(e.currentTarget.dataset.rating);
+
+        console.log('用户评分:', shopId, rating);
+
+        // 判断用户是否登录
+        if (!app.globalData.isLogin) {
+            wx.showToast({
+                title: '请先登录',
+                icon: 'none'
+            });
+            return;
+        }
+
+        // 显示加载提示
+        wx.showLoading({
+            title: '提交中...',
+            mask: true
+        });
+
+        const db = wx.cloud.database();
+
+        // 检查用户是否已经评分过
+        db.collection('shop_ratings')
+            .where({
+                shopId: shopId,
+                _openid: app.globalData.userInfo.openId
+            })
+            .get()
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    // 更新已有评分
+                    return db.collection('shop_ratings').doc(res.data[0]._id).update({
+                        data: {
+                            rating: rating,
+                            updateTime: db.serverDate()
+                        }
+                    });
+                } else {
+                    // 添加新评分
+                    return db.collection('shop_ratings').add({
+                        data: {
+                            shopId: shopId,
+                            rating: rating,
+                            createTime: db.serverDate()
+                        }
+                    });
+                }
+            })
+            .then(() => {
+                // 更新商家的平均评分
+                return wx.cloud.callFunction({
+                    name: 'updateShopRating',
+                    data: {
+                        shopId: shopId
+                    }
+                });
+            })
+            .then(res => {
+                wx.hideLoading();
+                wx.showToast({
+                    title: '评分成功',
+                    icon: 'success'
+                });
+
+                // 更新本地数据
+                if (res.result && res.result.success) {
+                    const shopList = this.data.shopList.map(shop => {
+                        if (shop._id === shopId) {
+                            shop.avgRating = res.result.avgRating;
+                            shop.ratingCount = res.result.ratingCount;
+                        }
+                        return shop;
+                    });
+
+                    this.setData({
+                        shopList: shopList
+                    });
+                }
+            })
+            .catch(err => {
+                wx.hideLoading();
+                console.error('评分失败', err);
+                wx.showToast({
+                    title: '评分失败，请重试',
+                    icon: 'none'
+                });
+            });
+    },
+
+    // 空函数，用于阻止事件冒泡
+    noop: function (e) {
+        // 阻止事件冒泡
+        if (e && e.stopPropagation) {
+            e.stopPropagation();
+        }
+    },
 }) 

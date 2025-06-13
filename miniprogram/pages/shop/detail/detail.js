@@ -38,17 +38,28 @@ Page({
     // 页面显示时重新加载数据
     onShow: function () {
         // 检查登录状态
-        if (app.globalData.isLogin) {
-            this.setData({
-                isLogin: true,
-                userInfo: app.globalData.userInfo
+        if (!app.globalData.userInfo) {
+            wx.showLoading({
+                title: '加载中...',
+                mask: true
             })
-
-            // 重新加载评论数据
-            if (this.data.shopId) {
+            app.checkLoginStatus().then(() => {
+                wx.hideLoading()
+                // 登录成功后重新加载数据
+                this.loadShopDetail()
                 this.loadComments()
-                this.checkFavoriteStatus()
-            }
+            }).catch(err => {
+                wx.hideLoading()
+                console.error('登录失败', err)
+                wx.showToast({
+                    title: '登录失败，请重试',
+                    icon: 'none'
+                })
+            })
+        } else {
+            // 已登录，直接加载数据
+            this.loadShopDetail()
+            this.loadComments()
         }
     },
 
@@ -74,32 +85,32 @@ Page({
     // 加载评论列表
     loadComments: function () {
         const db = wx.cloud.database()
+        const _ = db.command
 
         db.collection('shop_comments')
             .where({
                 shopId: this.data.shopId
             })
-            .orderBy('likeCount', 'desc')
+            .orderBy('createTime', 'desc')
             .get()
             .then(res => {
-                console.log('获取到评论数据:', res.data)
+                if (res.data && res.data.length > 0) {
+                    const comments = res.data
+                    const openids = []
 
-                // 格式化评论时间
-                const formattedComments = res.data.map(comment => {
-                    if (comment.createTime) {
-                        comment.formattedTime = this.formatCommentTime(comment.createTime)
-                    }
-                    return comment
-                })
+                    // 收集所有评论的用户openid
+                    comments.forEach(comment => {
+                        if (comment._openid) {
+                            openids.push(comment._openid)
+                        }
+                    })
 
-                // 获取所有评论的用户openid
-                const openids = [...new Set(formattedComments.map(comment => comment._openid))]
-
-                if (openids.length > 0) {
                     // 获取最新的用户信息
-                    this.loadLatestUserInfo(openids, formattedComments)
+                    this.loadLatestUserInfo([...new Set(openids)], comments)
                 } else {
-                    this.setData({ comments: formattedComments })
+                    this.setData({
+                        comments: []
+                    })
                 }
             })
             .catch(err => {
