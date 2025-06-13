@@ -42,31 +42,24 @@
     </view>
   </view>
 
-  <!-- 商家列表 -->
-  <scroll-view class="shop-list" scroll-y="true" bindscrolltolower="loadMore">
-    <view class="shop-card" wx:for="{{shopList}}" wx:key="_id">
-      <!-- 商家信息 -->
-      <view class="shop-info" bindtap="navigateToShop" data-shop="{{item}}">
-        <image class="shop-logo" src="{{item.logoUrl}}" mode="aspectFill" binderror="handleLogoError" data-index="{{index}}"></image>
-        <view class="shop-detail">
-          <view class="shop-name">{{item.name}}</view>
-          <!-- 添加星级评分 -->
-          <view class="rating-stars" catchtap="noop">
-            <view class="stars-container">
-              <view class="stars-bg">
-                <text class="icon-star" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" wx:for-item="star" catchtap="rateShop" data-shop-id="{{item._id}}" data-rating="{{star}}">☆</text>
-              </view>
-              <view class="stars-active" style="width: {{item.avgRating ? (item.avgRating/5)*100 : 0}}%">
-                <text class="icon-star" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" wx:for-item="star">★</text>
-              </view>
-            </view>
-            <text class="rating-score" wx:if="{{item.avgRating}}">{{item.avgRating}}</text>
+  <!-- 商家列表优化 -->
+  <view class="shop-list">
+    <view wx:for="{{shopList}}" wx:key="_id" class="shop-item" bindtap="navigateToShop" data-shop="{{item}}">
+      <!-- 商家信息部分 -->
+      <view class="shop-main">
+        <image src="{{item.logoUrl}}" class="shop-image" lazy-load="true" mode="aspectFill" binderror="handleLogoError" data-index="{{index}}"></image>
+        <view class="shop-info">
+          <text class="shop-name">{{item.name}}</text>
+          <view class="shop-rating" wx:if="{{item.avgRating}}">
+            <text class="rating-text">{{item.avgRating}}</text>
+            <text class="rating-count">({{item.ratingCount || 0}}人评)</text>
           </view>
+          <view class="shop-address" wx:if="{{item.address}}">{{item.address}}</view>
         </view>
       </view>
       
-      <!-- 热门评论 -->
-      <view class="hot-comment" wx:if="{{item.hotComment}}" bindtap="goToShopDetail" data-id="{{item._id}}">
+      <!-- 热门评论部分 -->
+      <view class="hot-comment" wx:if="{{item.hotComment}}" catchtap="goToShopDetail" data-id="{{item._id}}">
         <view class="hot-comment-title">
           <image class="hot-icon" src="/static/images/hot.png" mode="aspectFit"></image>
           <text>热门评价</text>
@@ -86,9 +79,11 @@
         </view>
       </view>
     </view>
-
-    <!-- 加载更多 -->
-    <view class="loading" wx:if="{{isLoading}}">加载中...</view>
-    <view class="no-more" wx:if="{{noMore}}">没有更多了</view>
-  </scroll-view>
+    
+    <!-- 加载状态提示 -->
+    <view class="loading-more" wx:if="{{shopList.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+  </view>
 </view> 

@@ -1,4 +1,7 @@
 {
     "usingComponents": {},
-    "navigationBarTitleText": "校园外卖聚合平台"
+    "navigationBarTitleText": "校园外卖聚合平台",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#f5f5f5",
+    "backgroundTextStyle": "dark"
 }

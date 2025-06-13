@@ -20,7 +20,7 @@ exports.main = async (event, context) => {
             }
         }
 
-        // 计算商家的平均评分
+        // 使用聚合操作优化性能
         const ratingResult = await db.collection('shop_ratings')
             .aggregate()
             .match({
@@ -44,7 +44,7 @@ exports.main = async (event, context) => {
         const avgRating = parseFloat(ratingResult.list[0].avgRating.toFixed(1))
         const ratingCount = ratingResult.list[0].ratingCount
 
-        // 更新商家的平均评分
+        // 更新商家的平均评分 - 只更新需要的字段
         await db.collection('shops')
             .doc(shopId)
             .update({

@@ -189,4 +189,79 @@
   color: #fff;
   font-size: 30rpx;
   border-radius: 40rpx;
+}
+
+/* 评分区域样式 */
+.rating-section {
+  background: #fff;
+  padding: 30rpx;
+  margin: 20rpx 0;
+  border-radius: 16rpx;
+}
+
+.rating-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rating-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rating-score {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #42a5f5;
+}
+
+.rating-label {
+  font-size: 24rpx;
+  color: #666;
+  margin: 4rpx 0;
+}
+
+.rating-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.user-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rating-tip {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.rating-stars {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.star {
+  font-size: 48rpx;
+  color: #e0e0e0;
+  margin: 0 6rpx;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffb400;
+}
+
+.rating-btn {
+  font-size: 24rpx;
+  padding: 8rpx 30rpx;
+  background: #42a5f5;
+  color: #fff;
+  border-radius: 30rpx;
+  line-height: 1.5;
+  min-height: auto;
 } 

@@ -10,7 +10,12 @@ Page({
         isLoading: false,
         isLogin: false,
         userInfo: null,
-        userMap: {} // 存储用户信息的映射
+        userMap: {}, // 存储用户信息的映射
+        shopInfo: null,
+        loading: true,
+        selectedRating: 0,  // 用户选择的评分
+        userRating: 0,      // 用户已有的评分
+        isRated: false,     // 用户是否已评分
     },
 
     onLoad: function (options) {
@@ -63,23 +68,90 @@ Page({
         }
     },
 
-    // 加载商家详情
+    // 加载商家详情（优化版）
     loadShopDetail: function () {
-        const db = wx.cloud.database()
+        // 显示加载中
+        wx.showLoading({
+            title: '加载中...',
+            mask: true
+        });
 
-        db.collection('shops')
-            .doc(this.data.shopId)
-            .get()
-            .then(res => {
-                this.setData({ shop: res.data })
-            })
-            .catch(err => {
-                console.error('获取商家详情失败', err)
-                wx.showToast({
-                    title: '获取商家信息失败',
-                    icon: 'none'
+        // 使用Promise包装
+        return new Promise((resolve, reject) => {
+            const db = wx.cloud.database();
+
+            // 优先使用缓存
+            const cacheKey = `shop_detail_${this.data.shopId}`;
+            const shopCache = wx.getStorageSync(cacheKey);
+
+            if (shopCache && Date.now() - shopCache.time < 5 * 60 * 1000) { // 缓存5分钟
+                this.setData({
+                    shopInfo: shopCache.data,
+                    loading: false
+                });
+
+                // 如果用户已登录，检查用户是否已经评分
+                if (app.globalData.isLogin) {
+                    this.checkUserRating();
+                }
+
+                wx.hideLoading();
+                resolve(shopCache.data);
+                return;
+            }
+
+            // 获取商家信息（从服务器）
+            db.collection('shops').doc(this.data.shopId)
+                .field({ // 只获取需要的字段
+                    name: true,
+                    logoUrl: true,
+                    bannerUrl: true,
+                    avgRating: true,
+                    ratingCount: true,
+                    address: true,
+                    category: true,
+                    phone: true,
+                    businessHours: true,
+                    intro: true,
+                    menu: true
                 })
-            })
+                .get()
+                .then(res => {
+                    const shopInfo = res.data;
+                    this.setData({
+                        shopInfo: shopInfo,
+                        loading: false
+                    });
+
+                    // 缓存商家信息
+                    wx.setStorage({
+                        key: cacheKey,
+                        data: {
+                            time: Date.now(),
+                            data: shopInfo
+                        }
+                    });
+
+                    // 如果用户已登录，检查用户是否已经评分
+                    if (app.globalData.isLogin) {
+                        return this.checkUserRating();
+                    }
+
+                    wx.hideLoading();
+                    resolve(shopInfo);
+                })
+                .catch(err => {
+                    console.error('获取商家详情失败', err);
+                    wx.hideLoading();
+
+                    wx.showToast({
+                        title: '获取商家信息失败',
+                        icon: 'none'
+                    });
+
+                    reject(err);
+                });
+        });
     },
 
     // 加载评论列表
@@ -462,5 +534,182 @@ Page({
                 })
             }
         })
+    },
+
+    // 检查用户是否已经评分（优化版）
+    checkUserRating: function () {
+        const db = wx.cloud.database();
+
+        return new Promise((resolve, reject) => {
+            // 使用缓存
+            const cacheKey = `user_rating_${this.data.shopId}_${app.globalData.userInfo.openId}`;
+            const ratingCache = wx.getStorageSync(cacheKey);
+
+            if (ratingCache && Date.now() - ratingCache.time < 30 * 60 * 1000) { // 缓存30分钟
+                this.setData({
+                    userRating: ratingCache.data.rating,
+                    selectedRating: ratingCache.data.rating,
+                    isRated: true
+                });
+
+                wx.hideLoading();
+                resolve(ratingCache.data);
+                return;
+            }
+
+            db.collection('shop_ratings')
+                .where({
+                    shopId: this.data.shopId,
+                    _openid: app.globalData.userInfo.openId
+                })
+                .limit(1) // 只需要一条记录
+                .get()
+                .then(res => {
+                    wx.hideLoading();
+
+                    if (res.data && res.data.length > 0) {
+                        const userRating = res.data[0];
+
+                        this.setData({
+                            userRating: userRating.rating,
+                            selectedRating: userRating.rating,
+                            isRated: true
+                        });
+
+                        // 缓存用户评分
+                        wx.setStorage({
+                            key: cacheKey,
+                            data: {
+                                time: Date.now(),
+                                data: userRating
+                            }
+                        });
+
+                        resolve(userRating);
+                    } else {
+                        resolve(null);
+                    }
+                })
+                .catch(err => {
+                    wx.hideLoading();
+                    console.error('检查用户评分失败', err);
+                    reject(err);
+                });
+        });
+    },
+
+    // 选择评分
+    selectRating: function (e) {
+        const rating = parseInt(e.currentTarget.dataset.rating);
+        this.setData({
+            selectedRating: rating
+        });
+    },
+
+    // 提交评分
+    submitRating: function () {
+        // 判断用户是否登录
+        if (!app.globalData.isLogin) {
+            wx.showToast({
+                title: '请先登录',
+                icon: 'none'
+            });
+            return;
+        }
+
+        // 显示加载提示
+        wx.showLoading({
+            title: '提交中...',
+            mask: true
+        });
+
+        const db = wx.cloud.database();
+        const rating = this.data.selectedRating;
+
+        // 检查用户是否已经评分过
+        db.collection('shop_ratings')
+            .where({
+                shopId: this.data.shopId,
+                _openid: app.globalData.userInfo.openId
+            })
+            .get()
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    // 更新已有评分
+                    return db.collection('shop_ratings').doc(res.data[0]._id).update({
+                        data: {
+                            rating: rating,
+                            updateTime: db.serverDate()
+                        }
+                    });
+                } else {
+                    // 添加新评分
+                    return db.collection('shop_ratings').add({
+                        data: {
+                            shopId: this.data.shopId,
+                            rating: rating,
+                            createTime: db.serverDate()
+                        }
+                    });
+                }
+            })
+            .then(() => {
+                // 更新商家的平均评分
+                return wx.cloud.callFunction({
+                    name: 'updateShopRating',
+                    data: {
+                        shopId: this.data.shopId
+                    }
+                });
+            })
+            .then(res => {
+                wx.hideLoading();
+
+                wx.showToast({
+                    title: '评分成功',
+                    icon: 'success'
+                });
+
+                // 更新本地数据
+                if (res.result && res.result.success) {
+                    this.setData({
+                        'shopInfo.avgRating': res.result.avgRating,
+                        'shopInfo.ratingCount': res.result.ratingCount,
+                        userRating: rating,
+                        isRated: true
+                    });
+                }
+            })
+            .catch(err => {
+                wx.hideLoading();
+                console.error('评分失败', err);
+
+                wx.showToast({
+                    title: '评分失败，请重试',
+                    icon: 'none'
+                });
+            });
+    },
+
+    // 下拉刷新
+    onPullDownRefresh: function () {
+        // 重新加载商家详情
+        this.loadShopDetail().then(() => {
+            wx.stopPullDownRefresh();
+        }).catch(err => {
+            console.error('刷新失败', err);
+            wx.stopPullDownRefresh();
+            wx.showToast({
+                title: '刷新失败',
+                icon: 'none'
+            });
+        });
+    },
+
+    // 空函数，用于阻止事件冒泡
+    noop: function (e) {
+        if (e && e.stopPropagation) {
+            e.stopPropagation();
+        }
     }
 }) 

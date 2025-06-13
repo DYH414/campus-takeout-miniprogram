@@ -75,9 +75,96 @@
   font-weight: bold;
 }
 
-/* 商家列表 */
+/* 商家列表样式优化 */
 .shop-list {
-  height: calc(100vh - 240rpx);
+  padding: 20rpx;
+}
+
+.shop-item {
+  background: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.shop-main {
+  display: flex;
+  padding: 20rpx;
+}
+
+.shop-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 8rpx;
+  background-color: #f5f5f5; /* 占位色，加载前显示 */
+}
+
+.shop-info {
+  flex: 1;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.shop-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.shop-rating {
+  display: flex;
+  align-items: center;
+  margin: 6rpx 0;
+}
+
+.rating-text {
+  font-size: 28rpx;
+  color: #ffb400;
+  font-weight: bold;
+  margin-right: 8rpx;
+}
+
+.rating-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.shop-address {
+  font-size: 24rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 加载状态 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.loading-spinner {
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid #ccc;
+  border-top-color: #42a5f5;
+  border-radius: 50%;
+  margin-right: 10rpx;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 商家卡片样式优化 */
@@ -106,13 +193,6 @@
   flex: 1;
 }
 
-.shop-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
 .shop-desc {
   font-size: 26rpx;
   color: #999;
@@ -135,18 +215,17 @@
   color: #666;
 }
 
-/* 热门评论样式优化 */
+/* 热门评论样式 */
 .hot-comment {
-  margin-top: 10rpx;
   background: #f9f9f9;
-  border-radius: 8rpx;
-  padding: 12rpx 16rpx;
+  padding: 16rpx;
+  border-top: 1rpx solid #eee;
 }
 
 .hot-comment-title {
   display: flex;
   align-items: center;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
   font-size: 24rpx;
   color: #ff6b6b;
   font-weight: bold;
@@ -163,12 +242,13 @@
   align-items: flex-start;
 }
 
-.hot-comment .avatar {
-  width: 64rpx;
-  height: 64rpx;
+.avatar {
+  width: 60rpx;
+  height: 60rpx;
   border-radius: 50%;
   margin-right: 16rpx;
   flex-shrink: 0;
+  background-color: #f0f0f0; /* 占位色 */
 }
 
 .comment-right {
@@ -183,13 +263,13 @@
   margin-bottom: 8rpx;
 }
 
-.hot-comment .nickname {
+.nickname {
   font-size: 26rpx;
   color: #333;
   font-weight: 500;
 }
 
-.hot-comment .like-count {
+.like-count {
   display: flex;
   align-items: center;
   color: #ff6b6b;
@@ -204,7 +284,7 @@
   font-size: 28rpx;
 }
 
-.hot-comment .content {
+.content {
   font-size: 28rpx;
   color: #333;
   line-height: 1.5;
@@ -347,4 +427,68 @@
   font-size: 28rpx;
   color: #ffb400;
   font-weight: bold;
+}
+
+/* 评分样式（虎扑风格） */
+.shop-rating {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.rating-num {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #42a5f5;
+  margin-right: 16rpx;
+}
+
+.rating-bar-container {
+  display: flex;
+  flex-direction: column;
+  height: 75rpx;
+}
+
+.rating-bar-wrapper {
+  display: flex;
+  align-items: center;
+  height: 15rpx;
+}
+
+.rating-bar-item {
+  position: relative;
+  width: 120rpx;
+  height: 8rpx;
+  margin-right: 8rpx;
+}
+
+.rating-bar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #eee;
+  border-radius: 4rpx;
+}
+
+.rating-bar-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #ffb400;
+  border-radius: 4rpx;
+}
+
+.rating-star {
+  font-size: 20rpx;
+  color: #ffb400;
+  margin-right: 8rpx;
+}
+
+.rating-count {
+  font-size: 24rpx;
+  color: #999;
+  margin-left: 16rpx;
 } 

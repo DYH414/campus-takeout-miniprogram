@@ -18,6 +18,34 @@
     </view>
   </view>
   
+  <!-- 商家评分区域 -->
+  <view class="rating-section">
+    <view class="rating-header">
+      <view class="rating-left">
+        <view class="rating-score" wx:if="{{shopInfo.avgRating}}">{{shopInfo.avgRating}}</view>
+        <view class="rating-label">综合评分</view>
+        <view class="rating-count">{{shopInfo.ratingCount || 0}}人评</view>
+      </view>
+      
+      <!-- 用户评分操作区 -->
+      <view class="user-rating">
+        <text class="rating-tip">{{isRated ? '我的评分' : '点击星星评分'}}</text>
+        <view class="rating-stars">
+          <view 
+            class="star {{selectedRating >= index+1 ? 'active' : ''}}" 
+            wx:for="{{5}}" 
+            wx:key="index"
+            bindtap="selectRating"
+            data-rating="{{index+1}}"
+          >★</view>
+        </view>
+        <button class="rating-btn" bindtap="submitRating" wx:if="{{selectedRating > 0}}">
+          {{isRated && userRating === selectedRating ? '已评分' : '提交'}}
+        </button>
+      </view>
+    </view>
+  </view>
+  
   <!-- 评论区域 -->
   <view class="comment-section">
     <view class="section-title">用户评论</view>
