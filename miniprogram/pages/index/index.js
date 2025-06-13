@@ -19,7 +19,9 @@ Page({
         noMore: false,
         searchKeyword: '',
         hotComments: {}, // 存储每个商家的热门评论
-        userMap: {} // 存储用户信息的映射
+        userMap: {}, // 存储用户信息的映射
+        showPlatformSelector: false,
+        currentShop: null
     },
 
     onLoad: function () {
@@ -338,49 +340,82 @@ Page({
     },
 
     // 跳转到商家
-    navigateToShop: function (e) {
-        const shop = e.currentTarget.dataset.shop
-
-        // 根据平台类型跳转
-        if (shop.platform === 'meituan') {
-            // 美团外卖
-            wx.navigateToMiniProgram({
-                appId: 'wxde8ac0a21135c07d', // 美团外卖小程序的AppID
-                path: `pages/shop/shop?id=${shop.platformShopId}`,
-                fail: function (err) {
-                    console.error('跳转美团失败:', err)
-                    wx.showToast({
-                        title: '跳转失败，请稍后重试',
-                        icon: 'none'
-                    })
-                }
-            })
-        } else if (shop.platform === 'ele') {
-            // 饿了么
-            wx.navigateToMiniProgram({
-                appId: 'wxece3a9a4c82f58c9', // 饿了么小程序的AppID
-                path: `pages/shop/shop?id=${shop.platformShopId}`,
-                fail: function (err) {
-                    console.error('跳转饿了么失败:', err)
-                    wx.showToast({
-                        title: '跳转失败，请稍后重试',
-                        icon: 'none'
-                    })
-                }
-            })
-        } else {
-            // 其他小程序
-            wx.navigateToMiniProgram({
-                appId: shop.appId,
-                fail: function (err) {
-                    console.error('跳转失败:', err)
-                    wx.showToast({
-                        title: '跳转失败，请稍后重试',
-                        icon: 'none'
-                    })
-                }
-            })
+    navigateToShop(e) {
+        const shop = e.currentTarget.dataset.shop;
+        if (shop.platforms && shop.platforms.length > 1) {
+            this.setData({
+                showPlatformSelector: true,
+                currentShop: shop
+            });
+        } else if (shop.platforms && shop.platforms.length === 1) {
+            const platform = shop.platforms[0];
+            if (platform.type === 'miniprogram') {
+                wx.navigateToMiniProgram({
+                    appId: platform.appId,
+                    path: platform.path,
+                    fail: (err) => {
+                        if (err.errMsg !== 'navigateToMiniProgram:fail cancel') {
+                            wx.showToast({
+                                title: '跳转失败',
+                                icon: 'none'
+                            });
+                        }
+                    }
+                });
+            } else if (platform.type === 'web') {
+                wx.navigateTo({
+                    url: `/pages/webview/webview?url=${encodeURIComponent(platform.url)}`,
+                    fail: (err) => {
+                        if (err.errMsg !== 'navigateTo:fail cancel') {
+                            wx.showToast({
+                                title: '跳转失败',
+                                icon: 'none'
+                            });
+                        }
+                    }
+                });
+            }
         }
+    },
+
+    // 跳转到指定平台
+    navigateToPlatform(e) {
+        const platform = e.currentTarget.dataset.platform;
+        if (platform.type === 'miniprogram') {
+            wx.navigateToMiniProgram({
+                appId: platform.appId,
+                path: platform.path,
+                fail: (err) => {
+                    if (err.errMsg !== 'navigateToMiniProgram:fail cancel') {
+                        wx.showToast({
+                            title: '跳转失败',
+                            icon: 'none'
+                        });
+                    }
+                }
+            });
+        } else if (platform.type === 'web') {
+            wx.navigateTo({
+                url: `/pages/webview/webview?url=${encodeURIComponent(platform.url)}`,
+                fail: (err) => {
+                    if (err.errMsg !== 'navigateTo:fail cancel') {
+                        wx.showToast({
+                            title: '跳转失败',
+                            icon: 'none'
+                        });
+                    }
+                }
+            });
+        }
+        this.closePlatformSelector();
+    },
+
+    // 关闭平台选择器
+    closePlatformSelector: function () {
+        this.setData({
+            showPlatformSelector: false,
+            currentShop: null
+        })
     },
 
     // 跳转到商家详情页

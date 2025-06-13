@@ -23,6 +23,25 @@
     </scroll-view>
   </view>
 
+  <!-- 平台选择器 -->
+  <view class="platform-selector" wx:if="{{showPlatformSelector}}">
+    <view class="platform-selector-mask" bindtap="closePlatformSelector"></view>
+    <view class="platform-selector-content">
+      <view class="platform-selector-title">选择下单平台</view>
+      <view class="platform-list">
+        <view class="platform-item" 
+              wx:for="{{currentShop.platforms}}" 
+              wx:key="type"
+              bindtap="navigateToPlatform" 
+              data-platform="{{item}}">
+          <image class="platform-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <text class="platform-name">{{item.name}}</text>
+        </view>
+      </view>
+      <view class="platform-selector-close" bindtap="closePlatformSelector">取消</view>
+    </view>
+  </view>
+
   <!-- 商家列表 -->
   <scroll-view class="shop-list" scroll-y="true" bindscrolltolower="loadMore">
     <view class="shop-item" wx:for="{{shopList}}" wx:key="_id">
